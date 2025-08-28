@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗄️ MongoDB Toolkit</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        input, select, button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .file-drop {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: #e0e0e0;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .tab.active {
+            background: #007bff;
+            color: white;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗄️ MongoDB Toolkit</h1>
+    <p style="text-align: center;">Import and Export MongoDB databases with ease</p>
+
+    <div class="tabs">
+        <div class="tab active" onclick="showSection('export')">📤 Export Database</div>
+        <div class="tab" onclick="showSection('import')">📥 Import Database</div>
+    </div>
+
+    <div id="export" class="section">
+        <h2>Export Database</h2>
+        <form id="exportForm">
+            <input type="text" id="exportConnectionString" placeholder="MongoDB Connection String" required>
+            <input type="text" id="exportDatabaseName" placeholder="Database Name" required>
+            <input type="text" id="exportCollections" placeholder="Collections (leave empty for all)">
+            <button type="submit">🚀 Export & Download</button>
+        </form>
+    </div>
+
+    <div id="import" class="section" style="display: none;">
+        <h2>Import Database</h2>
+        <form id="importForm" enctype="multipart/form-data">
+            <input type="text" id="importConnectionString" placeholder="MongoDB Connection String" required>
+            <input type="text" id="importDatabaseName" placeholder="Target Database Name" required>
+            <div class="file-drop" id="fileDrop">
+                <input type="file" id="backupFile" name="backupFile" accept=".zip,.json" required>
+                <p>📁 Click to select backup file or drag & drop here</p>
+                <p>Supports ZIP and JSON files</p>
+            </div>
+            <select id="importMode">
+                <option value="merge">Merge with existing data</option>
+                <option value="replace">Replace existing collections</option>
+                <option value="append">Append only (skip duplicates)</option>
+            </select>
+            <button type="submit">🔄 Start Import</button>
+        </form>
+    </div>
+
+    <div id="status" class="status" style="display: none;">
+        <p>Starting...</p>
+    </div>
+
+    <script>
+        function showSection(section) {
+            document.getElementById('export').style.display = section === 'export' ? 'block' : 'none';
+            document.getElementById('import').style.display = section === 'import' ? 'block' : 'none';
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', tab.getAttribute('onclick').includes(section));
+            });
+        }
+
+        const baseUrl = "http://localhost:3000";
+
+        // Handle file drag and drop
+        const fileDrop = document.getElementById('fileDrop');
+        const fileInput = document.getElementById('backupFile');
+        fileDrop.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileDrop.style.borderColor = '#007bff';
+        });
+        fileDrop.addEventListener('dragleave', () => {
+            fileDrop.style.borderColor = '#ddd';
+        });
+        fileDrop.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileDrop.style.borderColor = '#ddd';
+            fileInput.files = e.dataTransfer.files;
+        });
+
+        // Handle export form submission
+        document.getElementById('exportForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const status = document.getElementById('status');
+            status.style.display = 'block';
+            status.innerHTML = '<p>Starting...</p>';
+
+            try {
+                const response = await fetch(`${baseUrl}/api/export`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        connectionString: document.getElementById('exportConnectionString').value,
+                        databaseName: document.getElementById('exportDatabaseName').value,
+                        collections: document.getElementById('exportCollections').value
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.className = 'status success';
+                    status.innerHTML = `<p>Export successful! <a href="${result.data.download_url}" download>Download ${result.data.filename}</a></p>`;
+                } else {
+                    status.className = 'status error';
+                    status.innerHTML = `<p>Error: ${result.error}</p>`;
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+
+        // Handle import form submission
+        document.getElementById('importForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const status = document.getElementById('status');
+            status.style.display = 'block';
+            status.innerHTML = '<p>Starting...</p>';
+
+            const formData = new FormData();
+            formData.append('connectionString', document.getElementById('importConnectionString').value);
+            formData.append('databaseName', document.getElementById('importDatabaseName').value);
+            formData.append('importMode', document.getElementById('importMode').value);
+            formData.append('backupFile', document.getElementById('backupFile').files[0]);
+
+            try {
+                const response = await fetch(`${baseUrl}/api/import`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.className = 'status success';
+                    status.innerHTML = `<p>Import successful! Processed ${result.data.total_documents_processed} documents.</p>`;
+                } else {
+                    status.className = 'status error';
+                    status.innerHTML = `<p>Error: ${result.error}</p>`;
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
