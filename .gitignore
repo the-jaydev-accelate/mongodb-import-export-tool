@@ -1,3 +1,5 @@
 exports
+temp
+uploads
 node_modules
 .env
