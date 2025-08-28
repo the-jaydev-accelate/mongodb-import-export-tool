@@ -68,6 +68,7 @@ const upload = multer({
   }
 });
 
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Example route to serve an HTML file
