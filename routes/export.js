@@ -44,7 +44,7 @@ router.post('/', async (req, res) => {
 
     let collectionsToExport = [];
     if (collections && collections.length > 0) {
-      collectionsToExport = collections.split(',').map(c => c.trim()).filter(c => c.length > 0);
+      collectionsToExport = collections
     } else {
       const collectionList = await db.listCollections().toArray();
       collectionsToExport = collectionList.map(c => c.name);

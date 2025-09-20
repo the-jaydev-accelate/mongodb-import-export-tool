@@ -34,6 +34,8 @@ app.use = function (path, ...handlers) {
 // Import route handlers
 const exportHandler = require('./routes/export');
 const importHandler = require('./routes/import');
+const syncHandler = require('./routes/sync');
+
 
 // Middleware
 app.use(cors());
@@ -75,6 +77,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Routes
 app.use('/api/export', exportHandler);
 app.use('/api/import', upload.single('backupFile'), importHandler);
+app.use('/api/sync', syncHandler);
 
 
 app.get('/', (req, res) => {

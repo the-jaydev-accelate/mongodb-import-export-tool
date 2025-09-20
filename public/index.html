@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -212,5 +212,592 @@
             }
         });
     </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Toolkit</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #000;
+      --card-bg: #111;
+      --input-bg: #1a1a1a;
+      --text-light: #fff;
+      --text-muted: #777;
+      --radius: 10px;
+      --transition: 0.3s;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Fira Code', monospace;
+      background: var(--bg-dark);
+      color: var(--text-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 60px 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    h2 { font-size: 1.4rem; margin-bottom: 20px; text-align: center; }
+
+    /* Back button */
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: transparent;
+      border: 1px solid #333;
+      padding: 8px 14px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      color: var(--text-light);
+      display: none;
+      transition: background var(--transition);
+    }
+    .back-btn:hover { background: #222; }
+
+    /* Card Dashboard */
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      width: 100%;
+    }
+    .card {
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: var(--radius);
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid #333;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .card:hover { transform: translateY(-6px); box-shadow: 0 6px 20px rgba(255,255,255,0.1); }
+    .card i {
+      font-size: 2rem;
+      margin-bottom: 12px;
+      display: block;
+      color: var(--text-light);
+    }
+    .card span {
+      display: block;
+      font-size: 1rem;
+      color: var(--text-light);
+    }
+
+    /* Section Forms */
+    .section {
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: var(--radius);
+      max-width: 650px;
+      width: 100%;
+      display: none;
+      margin-top: 80px;
+      border: 1px solid #333;
+      position: relative;
+      overflow: hidden;
+    }
+    .section.active { display: block; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .input-group {
+      margin-bottom: 18px;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #333;
+      border-radius: var(--radius);
+      background: var(--input-bg);
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+    .input-group input:focus {
+      outline: none;
+      border-color: #fff;
+    }
+
+    /* Tag Input */
+    .tag-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tag-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #333;
+      border-radius: var(--radius);
+      background: var(--input-bg);
+      color: var(--text-light);
+      outline: none;
+    }
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      background: #222;
+      padding: 5px 10px;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tag button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    /* File Upload Card */
+    .upload-card {
+      border: 2px dashed #333;
+      border-radius: var(--radius);
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: border var(--transition), background var(--transition);
+    }
+    .upload-card.dragover {
+      border-color: #fff;
+      background: #1a1a1a;
+    }
+    .upload-card p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Radio buttons */
+    .radio-group {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 18px 0;
+    }
+    .radio-option {
+      flex: 1;
+      margin: 5px;
+      border-radius: var(--radius);
+      border: 1px solid #333;
+      text-align: center;
+      cursor: pointer;
+      transition: background var(--transition), border var(--transition), color var(--transition);
+    }
+    .radio-option input { display: none; }
+    .radio-option span {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      display: block;
+      padding: 6px 0;
+      transition: background var(--transition), color var(--transition);
+    }
+    .radio-option input:checked + span {
+      background: #fff;
+      color: #000;
+      font-weight: bold;
+      border-radius: var(--radius);
+    }
+    .radio-option:hover { background: #1a1a1a; }
+
+    /* Submit button */
+    button.submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: #fff;
+      border: none;
+      border-radius: var(--radius);
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform var(--transition);
+    }
+    button.submit-btn:hover { transform: translateY(-2px); }
+
+    /* Loader */
+    .loader {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 10;
+      transition: opacity var(--transition);
+      opacity: 0;
+    }
+    .loader.active {
+      display: block;
+      opacity: 1;
+    }
+    .loader::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--text-light);
+      font-size: 1.2rem;
+    }
+    .loader .spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 4px solid #333;
+      border-top: 4px solid #fff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* Status */
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      text-align: center;
+    }
+    .status.success { background: #2a3d2a; color: #a3e6a3; }
+    .status.error { background: #3d2a2a; color: #e6a3a3; }
+    .status a { color: #fff; text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <button class="back-btn" id="backBtn" onclick="showSection('cardView')">← Back</button>
+
+  <!-- Card view -->
+  <div id="cardView">
+    <h1>MongoDB Toolkit</h1>
+    <div class="card-container">
+      <div class="card" onclick="showSection('export')">
+        <i class="fas fa-file-export"></i>
+        <span>Export Database</span>
+      </div>
+      <div class="card" onclick="showSection('import')">
+        <i class="fas fa-file-import"></i>
+        <span>Import Database</span>
+      </div>
+      <div class="card" onclick="showSection('sync')">
+        <i class="fas fa-sync-alt"></i>
+        <span>Sync Databases</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export -->
+  <div id="export" class="section">
+    <div class="loader" id="exportLoader">
+      <div class="spinner"></div>
+    </div>
+    <form id="exportForm">
+      <div class="input-group">
+        <label for="exportConnectionString">Connection String</label>
+        <input type="text" id="exportConnectionString" required>
+      </div>
+      <div class="input-group">
+        <label for="exportDatabaseName">Database Name</label>
+        <input type="text" id="exportDatabaseName" required>
+      </div>
+      <div class="input-group">
+        <label>Collections</label>
+        <div class="tag-wrapper" id="exportTags">
+          <input type="text" class="tag-input" placeholder="Type and press Enter">
+          <div class="tag-list"></div>
+        </div>
+      </div>
+      <button class="submit-btn">Export & Download</button>
+    </form>
+    <div class="status" id="exportStatus"></div>
+  </div>
+
+  <!-- Import -->
+  <div id="import" class="section">
+    <div class="loader" id="importLoader">
+      <div class="spinner"></div>
+    </div>
+    <form id="importForm">
+      <div class="input-group">
+        <label for="importConnectionString">Connection String</label>
+        <input type="text" id="importConnectionString" required>
+      </div>
+      <div class="input-group">
+        <label for="importDatabaseName">Target Database Name</label>
+        <input type="text" id="importDatabaseName" required>
+      </div>
+      <div class="input-group">
+        <label>Upload Backup File</label>
+        <div class="upload-card" id="uploadCard">
+          <p>Drag & Drop or Click to Upload</p>
+          <input type="file" id="backupFile" hidden>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Collections</label>
+        <div class="tag-wrapper" id="importTags">
+          <input type="text" class="tag-input" placeholder="Type and press Enter">
+          <div class="tag-list"></div>
+        </div>
+      </div>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="importMode" value="merge" checked><span>Merge</span></label>
+        <label class="radio-option"><input type="radio" name="importMode" value="replace"><span>Replace</span></label>
+        <label class="radio-option"><input type="radio" name="importMode" value="append"><span>Append</span></label>
+      </div>
+      <button class="submit-btn">Start Import</button>
+    </form>
+    <div class="status" id="importStatus"></div>
+  </div>
+
+  <!-- Sync -->
+  <div id="sync" class="section">
+    <div class="loader" id="syncLoader">
+      <div class="spinner"></div>
+    </div>
+    <form id="syncForm">
+      <div class="form-row">
+        <div class="input-group">
+          <label for="sourceConnectionString">Source Connection</label>
+          <input type="text" id="sourceConnectionString" required>
+        </div>
+        <div class="input-group">
+          <label for="sourceDatabaseName">Source DB</label>
+          <input type="text" id="sourceDatabaseName" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="input-group">
+          <label for="targetConnectionString">Target Connection</label>
+          <input type="text" id="targetConnectionString" required>
+        </div>
+        <div class="input-group">
+          <label for="targetDatabaseName">Target DB</label>
+          <input type="text" id="targetDatabaseName" required>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Collections</label>
+        <div class="tag-wrapper" id="syncTags">
+          <input type="text" class="tag-input" placeholder="Type and press Enter">
+          <div class="tag-list"></div>
+        </div>
+      </div>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="syncMode" value="merge" checked><span>Merge</span></label>
+        <label class="radio-option"><input type="radio" name="syncMode" value="replace"><span>Replace</span></label>
+        <label class="radio-option"><input type="radio" name="syncMode" value="append"><span>Append</span></label>
+      </div>
+      <button class="submit-btn">Start Sync</button>
+    </form>
+    <div class="status" id="syncStatus"></div>
+  </div>
+
+  <script>
+  function showSection(section) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('cardView').style.display = 'none';
+    document.getElementById('backBtn').style.display = (section === 'cardView') ? 'none' : 'block';
+    if (section === 'cardView') {
+      document.getElementById('cardView').style.display = 'block';
+    } else {
+      document.getElementById(section).classList.add('active');
+      localStorage.setItem('activeSection', section); // Persist state
+    }
+  }
+
+  // On page load, restore the last active section
+  document.addEventListener('DOMContentLoaded', () => {
+    const activeSection = localStorage.getItem('activeSection') || 'cardView';
+    showSection(activeSection);
+  });
+
+  // Tag input logic
+  function setupTagInput(wrapperId) {
+    const wrapper = document.getElementById(wrapperId);
+    const input = wrapper.querySelector('.tag-input');
+    const list = wrapper.querySelector('.tag-list');
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && input.value.trim() !== '') {
+        e.preventDefault();
+        const tagText = input.value.trim();
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.innerHTML = `${tagText}<button onclick="this.parentNode.remove()">×</button>`;
+        list.appendChild(tag);
+        input.value = '';
+      }
+    });
+  }
+  setupTagInput('exportTags');
+  setupTagInput('importTags');
+  setupTagInput('syncTags');
+
+  // File upload card
+  const uploadCard = document.getElementById('uploadCard');
+  const fileInput = document.getElementById('backupFile');
+  uploadCard.addEventListener('click', () => fileInput.click());
+  uploadCard.addEventListener('dragover', (e) => { e.preventDefault(); uploadCard.classList.add('dragover'); });
+  uploadCard.addEventListener('dragleave', () => uploadCard.classList.remove('dragover'));
+  uploadCard.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadCard.classList.remove('dragover');
+    fileInput.files = e.dataTransfer.files;
+    uploadCard.querySelector('p').textContent = fileInput.files[0].name;
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      uploadCard.querySelector('p').textContent = fileInput.files[0].name;
+    }
+  });
+
+  // API and Loader Logic
+  const baseUrl = "http://localhost:3000";
+
+  // Export
+  document.getElementById('exportForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const loader = document.getElementById('exportLoader');
+    const status = document.getElementById('exportStatus');
+    loader.classList.add('active');
+
+    const tags = Array.from(document.querySelectorAll('#exportTags .tag')).map(tag => tag.textContent.replace('×', ''));
+    try {
+      const response = await fetch(`${baseUrl}/api/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          connectionString: document.getElementById('exportConnectionString').value,
+          databaseName: document.getElementById('exportDatabaseName').value,
+          collections: tags.length ? tags : []
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        status.className = 'status success';
+        // Display a clickable link for manual download
+        status.innerHTML = `Export successful! <a href="${result.data.download_url}" download="${result.data.filename || 'export.zip'}">Click here to download ZIP</a>`;
+      } else {
+        status.className = 'status error';
+        status.textContent = `Error: ${result.error}`;
+      }
+    } catch (error) {
+      status.className = 'status error';
+      status.textContent = `Error: ${error.message}`;
+    } finally {
+      loader.classList.remove('active');
+    }
+  });
+
+  // Import
+  document.getElementById('importForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const loader = document.getElementById('importLoader');
+    const status = document.getElementById('importStatus');
+    loader.classList.add('active');
+
+    const tags = Array.from(document.querySelectorAll('#importTags .tag')).map(tag => tag.textContent.replace('×', ''));
+    const formData = new FormData();
+    formData.append('connectionString', document.getElementById('importConnectionString').value);
+    formData.append('databaseName', document.getElementById('importDatabaseName').value);
+    formData.append('importMode', document.querySelector('input[name="importMode"]:checked').value);
+    formData.append('backupFile', fileInput.files[0]);
+    formData.append('collections', tags.length ? tags.join(',') : '');
+
+    try {
+      const response = await fetch(`${baseUrl}/api/import`, {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+      if (result.success) {
+        status.className = 'status success';
+        status.textContent = `Import successful! Processed ${result.data.total_documents_processed} documents.`;
+      } else {
+        status.className = 'status error';
+        status.textContent = `Error: ${result.error}`;
+      }
+    } catch (error) {
+      status.className = 'status error';
+      status.textContent = `Error: ${error.message}`;
+    } finally {
+      loader.classList.remove('active');
+    }
+  });
+
+  // Sync
+  document.getElementById('syncForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const loader = document.getElementById('syncLoader');
+    const status = document.getElementById('syncStatus');
+    loader.classList.add('active');
+
+    const tags = Array.from(document.querySelectorAll('#syncTags .tag')).map(tag => tag.textContent.replace('×', ''));
+    try {
+      const response = await fetch(`${baseUrl}/api/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sourceConnectionString: document.getElementById('sourceConnectionString').value,
+          sourceDatabaseName: document.getElementById('sourceDatabaseName').value,
+          targetConnectionString: document.getElementById('targetConnectionString').value,
+          targetDatabaseName: document.getElementById('targetDatabaseName').value,
+          syncMode: document.querySelector('input[name="syncMode"]:checked').value,
+          collections: tags.length ? tags : []
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        status.className = 'status success';
+        status.textContent = `Sync successful! Processed ${result.data.total_documents_processed} documents.`;
+      } else {
+        status.className = 'status error';
+        status.textContent = `Error: ${result.error}`;
+      }
+    } catch (error) {
+      status.className = 'status error';
+      status.textContent = `Error: ${error.message}`;
+    } finally {
+      loader.classList.remove('active');
+    }
+  });
+</script>
 </body>
 </html>
